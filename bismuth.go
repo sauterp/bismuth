@@ -20,8 +20,10 @@ import (
 	"golang.org/x/crypto/ssh/agent"
 )
 
-const maxSessionsPerContext = 5
-const networkTimeout = 15 * time.Second
+const (
+	maxSessionsPerContext = 5
+	networkTimeout        = 15 * time.Second
+)
 
 type ExecContext struct {
 	mutex    sync.Mutex
@@ -54,9 +56,11 @@ func SetVerbose(_verbose bool) {
 	verbose = _verbose
 }
 
-var NotFoundError = errors.New("not found")
-var NotConnectedError = errors.New("not connected")
-var NotHasConnectedError = errors.New("never connected")
+var (
+	NotFoundError        = errors.New("not found")
+	NotConnectedError    = errors.New("not connected")
+	NotHasConnectedError = errors.New("never connected")
+)
 
 func (ctx *ExecContext) Init() {
 	ctx.poolDone = make(chan bool)
@@ -68,8 +72,8 @@ func (ctx *ExecContext) Init() {
 	})
 	ctx.logger = ctx.newLogger("")
 	ctx.updatedHostname()
-
 }
+
 func NewExecContext() *ExecContext {
 	ctx := &ExecContext{}
 	ctx.Init()
@@ -129,8 +133,9 @@ func (ctx *ExecContext) reconnect() (err error) {
 		ag := agent.NewClient(agentConn)
 		auths := []ssh.AuthMethod{ssh.PublicKeysCallback(ag.Signers)}
 		config := &ssh.ClientConfig{
-			User: username,
-			Auth: auths,
+			User:            username,
+			Auth:            auths,
+			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		}
 		conn, err := net.DialTimeout("tcp", addr, networkTimeout)
 		if err != nil {
@@ -180,6 +185,7 @@ func dropCR(data []byte) []byte {
 	}
 	return data
 }
+
 func scanNullLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
@@ -381,7 +387,7 @@ func (ctx *ExecContext) KillAllSessions() {
 		}
 	}
 	timeoutChan := time.After(killTimeout)
-	for _, _ = range sessions {
+	for range sessions {
 		select {
 		case <-sessionClosedChan:
 			break
