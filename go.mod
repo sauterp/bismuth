@@ -1,4 +1,4 @@
-module github.com/tillbert/bismuth
+module github.com/sauterp/bismuth
 
 go 1.18
 
